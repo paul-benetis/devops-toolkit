@@ -17,9 +17,7 @@ terraform {
 }
 
 provider "aws" {
-  shared_config_files      = ["/Users/paulbenetis/.aws/config"]
-  shared_credentials_files = ["/Users/paulbenetis/.aws/credentials"]
-  profile                  = "default"
+  region = var.aws_region
 
   default_tags {
     tags = {
