@@ -9,6 +9,6 @@ resource "aws_s3_bucket_versioning" "tf_state" {
   }
 }
 
-resource "aws_s3_bucket" "test_bucket" {
-  bucket = "paulb-devops-toolkit-test-bucket"
-}
+# resource "aws_s3_bucket" "test_bucket" {
+#   bucket = "paulb-devops-toolkit-test-bucket"
+# }
