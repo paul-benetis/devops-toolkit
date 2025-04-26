@@ -5,6 +5,10 @@ on:
     branches:
       - main
 
+permissions:
+  pull-requests: write
+  contents: read
+
 jobs:
   terraform-plan:
     name: Terraform Plan and PR Comment
@@ -40,4 +44,4 @@ jobs:
       - name: Post Plan as PR Comment
         uses: marocchino/sticky-pull-request-comment@v2.9.2
         with:
-          path: ./terraform/plan_output.txt
+          path: plan_output.txt
