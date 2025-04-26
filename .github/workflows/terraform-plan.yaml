@@ -40,9 +40,6 @@ jobs:
           terraform plan -no-color >> plan_output.txt
           echo '```' >> plan_output.txt
 
-      - name: List Files (Debug)
-        run: ls -alh
-
       - name: Post Plan as PR Comment
         uses: marocchino/sticky-pull-request-comment@v2.9.2
         with:
