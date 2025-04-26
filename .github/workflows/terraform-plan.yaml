@@ -36,7 +36,10 @@ jobs:
         run: terraform validate
 
       - name: Terraform Plan and Save Output
-        run: terraform plan -no-color > plan_output.txt
+        run: |
+          echo '```' > plan_output.txt
+          terraform plan -no-color >> plan_output.txt
+          echo '```' >> plan_output.txt
 
       - name: List Files (Debug)
         run: ls -alh
