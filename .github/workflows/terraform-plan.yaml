@@ -40,4 +40,4 @@ jobs:
       - name: Post Plan as PR Comment
         uses: marocchino/sticky-pull-request-comment@v2.9.2
         with:
-          path: plan_output.txt
+          path: terraform/plan_output.txt
