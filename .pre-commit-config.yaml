@@ -11,4 +11,4 @@ repos:
         entry: bash -c 'if git diff --cached --name-only | grep -q "^app/"; then cd app && go test ./...; fi'
         language: system
         pass_filenames: false
-        stages: [push]
+        stages: [pre-push]
