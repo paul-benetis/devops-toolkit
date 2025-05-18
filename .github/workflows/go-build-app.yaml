@@ -4,11 +4,18 @@ on:
   push:
     branches:
       - "**"
+    paths:
+      - app/**
 
 jobs:
   build:
     name: Build Go Application
     runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        goarch: [amd64, arm64]
+        goos: [linux]
 
     steps:
       - name: Checkout Code
@@ -41,13 +48,12 @@ jobs:
         working-directory: ./app
         run: |
           go build -v -o myapp .
-          GOOS=darwin GOARCH=arm64 go build -v -o myapp-mac-arm64 .
+          GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build -v -o myapp-${{ matrix.goarch }}-${{ matrix.goos }} .
 
       - name: Archive Build Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: myapp-binary
+          name: myapp-${{ matrix.goarch }}-${{ matrix.goos }}
           path: |
-            app/myapp
-            app/myapp-mac-arm64
+            app/myapp-${{ matrix.goarch }}-${{ matrix.goos }}
           retention-days: 30
