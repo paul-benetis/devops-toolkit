@@ -43,10 +43,13 @@ jobs:
         working-directory: ./app
         run: |
           go build -v -o myapp .
+          GOOS=darwin GOARCH=arm64 go build -v -o myapp-mac-arm64 .
 
       - name: Archive Build Artifact
         uses: actions/upload-artifact@v4
         with:
           name: myapp-binary
-          path: app/myapp
+          path: |
+            app/myapp
+            app/myapp-mac-arm64
           retention-days: 30
