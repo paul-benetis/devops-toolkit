@@ -1,1 +1,5 @@
-aws_region = "us-east-1"
+aws_region     = "us-east-1"
+aws_account_id = "905207152945"
+gh_account     = "paul-benetis"
+gh_repo        = "devops-toolkit"
+gh_ref         = "refs/heads/main"
