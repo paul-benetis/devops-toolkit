@@ -3,7 +3,7 @@ name: Build Go App
 on:
   push:
     branches:
-      - "**"
+      - main
     paths:
       - app/**
   workflow_dispatch:
