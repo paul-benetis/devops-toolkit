@@ -1,0 +1,52 @@
+name: Build Go App
+
+on:
+  push:
+    branches:
+      - "**"
+    paths:
+      - app/**
+
+jobs:
+  build:
+    name: Build Go Application
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        id: checkout
+        uses: actions/checkout@v4.2.2
+
+      - name: Extract Go Version from go.mod
+        id: goversion
+        working-directory: ./app
+        run: |
+          set -e
+          version=$(grep '^go ' go.mod | awk '{print $2}')
+          echo "go_version=$version" >> $GITHUB_OUTPUT
+
+      - name: Verify Extracted Go Version
+        run: |
+          echo "Extracted Go version: ${{ steps.goversion.outputs.go_version }}"
+
+      - name: Setup Go
+        id: setup-go
+        uses: actions/setup-go@v5.5.0
+        with:
+          go-version: ${{ steps.goversion.outputs.go_version }}
+
+      - name: Run Go Tests
+        working-directory: ./app
+        run: go test ./...
+
+      - name: Build Go App
+        working-directory: ./app
+        run: |
+          go build -v -o myapp .
+
+      - name: Archive Build Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: myapp-binary
+          path: app/myapp
+          retention-days: 30
