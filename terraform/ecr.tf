@@ -9,7 +9,7 @@ module "iam_github_oidc_role" {
 
   source = "terraform-aws-modules/iam/aws//modules/iam-github-oidc-role"
 
-  subjects = ["${var.gh_account}/${var.gh_repo}:${var.gh_ref}"]
+  subjects = ["${var.gh_account}/${var.gh_repo}:ref:${var.gh_ref}"]
 
   policies = {
     ECRPullPush = aws_iam_policy.iam_github_oidc_ecr_access.arn
@@ -124,11 +124,6 @@ resource "github_actions_secret" "aws_region" {
   plaintext_value = var.aws_region
 }
 
-
-
-
-# create policy for ecr and attach to role above
-# create GH workflow in TF so you can reference role arn for GH to assume
 # deploy workflow will need DOCKERFILE to build image before pushing to ecr
 # add docs for bootstrapping GH workflow before terraform takes over
 # example:
