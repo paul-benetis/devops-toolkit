@@ -108,52 +108,20 @@ resource "aws_ecr_repository_policy" "allow_pull_push" {
   })
 }
 
-# GH action workflow to build and push image to ECR
-# This allows to create the workflow while using AWS resource reference via Terraform
-
 provider "github" {
   owner = var.gh_account # Your GitHub username or organization
 }
 
-resource "github_repository_file" "assume_role_workflow" {
-  repository          = "devops-toolkit"
-  file                = ".github/workflows/go-deploy-app.yaml"
-  branch              = "main"
-  commit_message      = "Add Assume AWS Role workflow"
-  overwrite_on_create = true
+resource "github_actions_secret" "iam_github_oidc_role" {
+  repository      = var.gh_repo
+  secret_name     = "IAM_GITHUB_OIDC_ROLE"
+  plaintext_value = module.iam_github_oidc_role.arn
+}
 
-  content = <<-EOT
-    name: Deploy to AWS ECR
-
-    on:
-      push:
-        branches:
-          - '**'
-
-    jobs:
-      assume-role:
-        runs-on: ubuntu-latest
-
-        permissions:
-          id-token: write
-          contents: read
-
-        steps:
-          - name: Checkout Code (Optional)
-            uses: actions/checkout@v4
-
-          - name: Configure AWS Credentials via OIDC
-            uses: aws-actions/configure-aws-credentials@v4
-            with:
-              role-to-assume: ${module.iam_github_oidc_role.arn}
-              aws-region: ${var.aws_region}
-
-          - name: Verify Identity
-            run: aws sts get-caller-identity
-
-          - name: Example AWS Command (List ECR Repositories)
-            run: aws ecr describe-repositories
-  EOT
+resource "github_actions_secret" "aws_region" {
+  repository      = var.gh_repo
+  secret_name     = "AWS_REGION"
+  plaintext_value = var.aws_region
 }
 
 
