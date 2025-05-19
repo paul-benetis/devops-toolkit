@@ -6,6 +6,10 @@ terraform {
       source  = "hashicorp/aws"
       version = "5.95.0"
     }
+    github = {
+      source  = "integrations/github"
+      version = "~> 6.0"
+    }
   }
 
   backend "s3" {
