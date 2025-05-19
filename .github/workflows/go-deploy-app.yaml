@@ -1,0 +1,33 @@
+name: Deploy Go App to AWS ECR
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - app/**
+  workflow_dispatch:
+
+jobs:
+  assume-role:
+    runs-on: ubuntu-latest
+
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Checkout Code (Optional)
+        uses: actions/checkout@v4.2.2
+
+      - name: Configure AWS Credentials via OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.IAM_GITHUB_OIDC_ROLE }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Verify Identity
+        run: aws sts get-caller-identity
+
+      - name: Example AWS Command (List ECR Repositories)
+        run: aws ecr describe-repositories
