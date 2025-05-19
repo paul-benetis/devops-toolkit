@@ -36,6 +36,8 @@ jobs:
           terraform_version: 1.11.4
 
       - name: Initialize Terraform
+        env:
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
         run: terraform init
 
       - name: Validate Terraform
