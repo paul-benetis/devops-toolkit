@@ -18,7 +18,7 @@ jobs:
       id-token: write
     strategy:
       matrix:
-        goarch: [amd64, arm64]
+        goarch: [arm64]
         goos: [linux]
 
     steps:
@@ -50,5 +50,17 @@ jobs:
 
       - name: Build Go App
         run: |
-          go build -v -o myapp .
-          GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build -v -o myapp-${{ matrix.goarch }}-${{ matrix.goos }} .
+          GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build -v -o myapp .
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build, tag, and push docker image to Amazon ECR
+        env:
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          REPOSITORY: ${{ github.repository}}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build --platform linux/arm64 -t $REGISTRY/$REPOSITORY:$IMAGE_TAG .
+          docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
