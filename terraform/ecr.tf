@@ -52,7 +52,7 @@ resource "aws_iam_policy" "iam_github_oidc_ecr_access" {
 module "ecr" {
   source = "terraform-aws-modules/ecr/aws"
 
-  repository_name = var.gh_repo
+  repository_name = "${var.gh_account}/${var.gh_repo}"
 
   repository_read_write_access_arns = [module.iam_github_oidc_role.arn]
 
