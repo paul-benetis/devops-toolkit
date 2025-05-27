@@ -1,15 +1,15 @@
 name: Deploy Go App to AWS ECR
 
 on:
-  pull_request:
-    types: [closed]
+  push:
+    branches:
+      - main
     paths:
       - app/**
   workflow_dispatch:
 
 jobs:
   deploy:
-    if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     defaults:
       run:

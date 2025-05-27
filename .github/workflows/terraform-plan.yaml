@@ -44,6 +44,8 @@ jobs:
         run: terraform validate
 
       - name: Terraform Plan and Save Output
+        env:
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
           echo '```' > plan_output.txt
           terraform plan -no-color >> plan_output.txt
