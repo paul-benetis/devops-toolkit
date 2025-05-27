@@ -1,23 +1,28 @@
 name: Deploy Go App to AWS ECR
 
 on:
-  push:
-    branches:
-      - main
+  pull_request:
+    types: [closed]
     paths:
       - app/**
   workflow_dispatch:
 
 jobs:
-  assume-role:
+  deploy:
+    if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
-
+    defaults:
+      run:
+        working-directory: ./app
     permissions:
       id-token: write
-      contents: read
+    strategy:
+      matrix:
+        goarch: [arm64]
+        goos: [linux]
 
     steps:
-      - name: Checkout Code (Optional)
+      - name: Checkout Code
         uses: actions/checkout@v4.2.2
 
       - name: Configure AWS Credentials via OIDC
@@ -26,8 +31,36 @@ jobs:
           role-to-assume: ${{ secrets.IAM_GITHUB_OIDC_ROLE }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Verify Identity
-        run: aws sts get-caller-identity
+      - name: Extract Go Version from go.mod
+        id: goversion
+        run: |
+          set -e
+          version=$(grep '^go ' go.mod | awk '{print $2}')
+          echo "go_version=$version" >> $GITHUB_OUTPUT
 
-      - name: Example AWS Command (List ECR Repositories)
-        run: aws ecr describe-repositories
+      - name: Verify Extracted Go Version
+        run: |
+          echo "Extracted Go version: ${{ steps.goversion.outputs.go_version }}"
+
+      - name: Setup Go
+        id: setup-go
+        uses: actions/setup-go@v5.5.0
+        with:
+          go-version: ${{ steps.goversion.outputs.go_version }}
+
+      - name: Build Go App
+        run: |
+          GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build -v -o myapp .
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build, tag, and push docker image to Amazon ECR
+        env:
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          REPOSITORY: ${{ github.repository}}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build --platform linux/arm64 -t $REGISTRY/$REPOSITORY:$IMAGE_TAG .
+          docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
