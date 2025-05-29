@@ -74,18 +74,6 @@ module "ecs_service" {
 
   subnet_ids = data.aws_subnets.default.ids
 
-  service_connect_configuration = {
-    namespace = "myapp"
-    service = {
-      client_alias = {
-        port     = 80
-        dns_name = "myapp"
-      }
-      port_name      = "myapp"
-      discovery_name = "myapp"
-    }
-  }
-
   security_group_rules = {
     alb_ingress_3000 = {
       type        = "ingress"
