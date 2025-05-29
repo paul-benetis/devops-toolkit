@@ -1,9 +1,10 @@
 name: Terraform Plan
 
 on:
-  push:
+  pull_request:
+    types: [opened, synchronize, reopened]
     branches:
-      - "**"
+      - main
     paths:
       - terraform/**
   workflow_dispatch:
