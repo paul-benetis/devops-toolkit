@@ -67,9 +67,8 @@ jobs:
           REPOSITORY: ${{ github.repository}}
           IMAGE_TAG: ${{ github.sha }}
         run: |
-          docker build --platform linux/arm64 -t $REGISTRY/$REPOSITORY:$IMAGE_TAG -t $REGISTRY/$REPOSITORY:latest .
+          docker build --platform linux/arm64 -t $REGISTRY/$REPOSITORY:$IMAGE_TAG .
           docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
-          docker push $REGISTRY/$REPOSITORY:latest
           echo "image=$REGISTRY/$REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
       - name: Set up Terraform
