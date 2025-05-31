@@ -8,6 +8,10 @@ on:
       - app/**
   workflow_dispatch:
 
+env:
+  ECS_TASK_DEFINITION: myapp-task-def.json
+  CONTAINER_NAME: myapp
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -50,17 +54,71 @@ jobs:
 
       - name: Build Go App
         run: |
-          GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build -v -o myapp .
+          GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build -v -o ${{ env.CONTAINER_NAME }} .
 
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
       - name: Build, tag, and push docker image to Amazon ECR
+        id: build-image
         env:
           REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           REPOSITORY: ${{ github.repository}}
           IMAGE_TAG: ${{ github.sha }}
         run: |
-          docker build --platform linux/arm64 -t $REGISTRY/$REPOSITORY:$IMAGE_TAG .
+          docker build --platform linux/arm64 -t $REGISTRY/$REPOSITORY:$IMAGE_TAG -t $REGISTRY/$REPOSITORY:latest .
           docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
+          docker push $REGISTRY/$REPOSITORY:latest
+          echo "image=$REGISTRY/$REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3.1.2
+
+      - name: Initialize Terraform
+        working-directory: ./terraform
+        run: terraform init
+
+      - name: Get ECS Task Definition JSON
+        working-directory: ./terraform
+        run: |
+          terraform show -json | jq -r '
+              .values.root_module.child_modules[]
+              | select(.address == "module.ecs_service")
+              | .resources[]
+              | select(.type == "aws_ecs_task_definition" and .name == "this")
+              | .values
+              | {
+                  family: .family,
+                  networkMode: .network_mode,
+                  executionRoleArn: .execution_role_arn,
+                  taskRoleArn: .task_role_arn,
+                  containerDefinitions: (.container_definitions | fromjson),
+                  requiresCompatibilities: .requires_compatibilities,
+                  cpu: .cpu,
+                  memory: .memory,
+                  runtimePlatform: {
+                    cpuArchitecture: .runtime_platform[0].cpu_architecture,
+                    operatingSystemFamily: .runtime_platform[0].operating_system_family
+                  }
+                }
+            ' > ../${{ env.ECS_TASK_DEFINITION }}
+
+      - name: Fill in the new image ID in the Amazon ECS task definition
+        id: task-def
+        uses: aws-actions/amazon-ecs-render-task-definition@v1.7.3
+        with:
+          task-definition: ${{ env.ECS_TASK_DEFINITION }}
+          container-name: ${{ env.CONTAINER_NAME }}
+          image: ${{ steps.build-image.outputs.image }}
+
+      - name: Deploy Amazon ECS task definition
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v2.3.2
+        with:
+          task-definition: ${{ steps.task-def.outputs.task-definition }}
+          service: ${{ env.CONTAINER_NAME}}
+          cluster: ecs-${{ env.CONTAINER_NAME }}
+          wait-for-service-stability: true
+
+      - name: Deployment complete
+        run: echo "✅ ECS service '${{ env.CONTAINER_NAME }}' successfully deployed with image ${{ steps.build-image.outputs.image }}"
