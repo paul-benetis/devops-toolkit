@@ -48,6 +48,8 @@ jobs:
         run: terraform validate
 
       - name: Plan Terraform
+        env:
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
         run: terraform plan -no-color
 
       - name: Apply Terraform
