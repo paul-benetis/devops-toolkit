@@ -83,7 +83,7 @@ jobs:
       - name: Get ECS Task Definition JSON
         working-directory: ./terraform
         run: |
-          terraform show -json | jq -r '
+          terraform show -json | jq -c '
               .values.root_module.child_modules[]
               | select(.address == "module.ecs_service")
               | .resources[]
@@ -104,6 +104,9 @@ jobs:
                   }
                 }
             ' > ../${{ env.ECS_TASK_DEFINITION }}
+
+      - name: Print task definition (debug)
+        run: cat ../${{ env.ECS_TASK_DEFINITION }}
 
       - name: Fill in the new image ID in the Amazon ECS task definition
         id: task-def
