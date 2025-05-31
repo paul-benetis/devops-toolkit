@@ -27,6 +27,6 @@ module "iam_github_oidc_read_only_role" {
 
   policies = {
     ECRPullPush             = aws_iam_policy.iam_github_oidc_ecr_access.arn,
-    TerraformReadOnlyAccess = aws_iam_policy.iam_github_oidc_terraform_read_only_access.arn
+    TerraformReadOnlyAccess = "arn:aws:iam::aws:policy/ReadOnlyAccess"
   }
 }
