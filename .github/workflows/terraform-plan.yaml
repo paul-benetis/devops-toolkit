@@ -11,14 +11,12 @@ on:
 
 permissions:
   pull-requests: write
+  id-token: write
 
 jobs:
   terraform-plan:
     name: Terraform Plan and PR Comment
     runs-on: ubuntu-latest
-    env:
-      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
     defaults:
       run:
         working-directory: ./terraform
@@ -30,6 +28,12 @@ jobs:
         with:
           app-id: ${{ secrets.GH_APP_ID }}
           private-key: ${{ secrets.GH_APP_PRIVATE_KEY }}
+
+      - name: Configure AWS Credentials via OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.IAM_GITHUB_OIDC_ROLE }}
+          aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Checkout Code
         uses: actions/checkout@v4.2.2

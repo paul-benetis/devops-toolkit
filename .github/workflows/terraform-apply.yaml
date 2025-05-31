@@ -8,13 +8,13 @@ on:
       - terraform/**
   workflow_dispatch:
 
+permissions:
+  id-token: write
+
 jobs:
   terraform:
     name: Terraform Apply
     runs-on: ubuntu-latest
-    env:
-      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
     defaults:
       run:
         working-directory: ./terraform
@@ -27,6 +27,12 @@ jobs:
           app-id: ${{ secrets.GH_APP_ID }}
           private-key: ${{ secrets.GH_APP_PRIVATE_KEY }}
 
+      - name: Configure AWS Credentials via OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.IAM_GITHUB_OIDC_ROLE }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
       - name: Checkout Code
         uses: actions/checkout@v4.2.2
 
@@ -36,22 +42,16 @@ jobs:
           terraform_version: 1.11.4
 
       - name: Initialize Terraform
-        env:
-          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
         run: terraform init
 
       - name: Validate Terraform
-        env:
-          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
         run: terraform validate
 
       - name: Plan Terraform
-        env:
-          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
-        run: terraform plan
+        run: terraform plan -no-color
 
       - name: Apply Terraform
         env:
           GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
         if: github.ref == 'refs/heads/main'
-        run: terraform apply -auto-approve
+        run: terraform apply -auto-approve -input=false -no-color
