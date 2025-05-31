@@ -64,31 +64,6 @@ resource "aws_iam_policy" "iam_github_oidc_terraform_read_only_access" {
           "arn:aws:s3:::paulb-devops-toolkit-terraform-state/*"
         ]
       },
-      {
-        Effect = "Allow",
-        Action = [
-          "ec2:Describe*",
-          "iam:Get*",
-          "iam:List*",
-          "ecr:Describe*",
-          "ecr:Get*",
-          "ecs:Describe*",
-          "ecs:List*",
-          "logs:Describe*",
-          "logs:Get*",
-          "cloudwatch:Describe*",
-          "cloudwatch:Get*",
-          "lambda:List*",
-          "lambda:Get*",
-          "lambda:InvokeFunction",
-          "apigateway:GET",
-          "sqs:Get*",
-          "sqs:List*",
-          "sns:Get*",
-          "sns:List*"
-        ],
-        Resource = "*"
-      },
     ]
   })
 }
