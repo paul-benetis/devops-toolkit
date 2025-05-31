@@ -12,7 +12,8 @@ module "iam_github_oidc_role" {
   subjects = ["${var.gh_account}/${var.gh_repo}:ref:${var.gh_ref}"]
 
   policies = {
-    ECRPullPush = aws_iam_policy.iam_github_oidc_ecr_access.arn
+    ECRPullPush = aws_iam_policy.iam_github_oidc_ecr_access.arn,
+    Terraform   = aws_iam_policy.iam_github_oidc_terraform_access.arn
   }
 }
 
