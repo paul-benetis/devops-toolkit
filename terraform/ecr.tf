@@ -1,22 +1,3 @@
-# This setup allows GH Actions to connect to the ECR repository
-
-module "iam_github_oidc_provider" {
-  source = "terraform-aws-modules/iam/aws//modules/iam-github-oidc-provider"
-}
-
-module "iam_github_oidc_role" {
-  depends_on = [module.iam_github_oidc_provider]
-
-  source = "terraform-aws-modules/iam/aws//modules/iam-github-oidc-role"
-
-  subjects = ["${var.gh_account}/${var.gh_repo}:ref:${var.gh_ref}"]
-
-  policies = {
-    ECRPullPush = aws_iam_policy.iam_github_oidc_ecr_access.arn,
-    Terraform   = aws_iam_policy.iam_github_oidc_terraform_access.arn
-  }
-}
-
 resource "aws_iam_policy" "iam_github_oidc_ecr_access" {
   name        = "GitHubOIDCECRAccess"
   description = "Allows GitHub OIDC Role to push/pull images from ECR"
@@ -108,31 +89,3 @@ resource "aws_ecr_repository_policy" "allow_pull_push" {
     ]
   })
 }
-
-provider "github" {
-  owner = var.gh_account # Your GitHub username or organization
-}
-
-resource "github_actions_secret" "iam_github_oidc_role" {
-  repository      = var.gh_repo
-  secret_name     = "IAM_GITHUB_OIDC_ROLE"
-  plaintext_value = module.iam_github_oidc_role.arn
-}
-
-resource "github_actions_secret" "aws_region" {
-  repository      = var.gh_repo
-  secret_name     = "AWS_REGION"
-  plaintext_value = var.aws_region
-}
-
-# deploy workflow will need DOCKERFILE to build image before pushing to ecr
-# add docs for bootstrapping GH workflow before terraform takes over
-# example:
-# gh repo clone <repo>
-# gh repo create <repo> --public/private
-# gh api \
-#   -X PUT \
-#   -H "Accept: application/vnd.github+json" \
-#   /repos/<org>/<repo>/contents/.github/workflows/bootstrap.yml \
-#   -f message='Bootstrap workflow' \
-#   -f content="$(base64 -w 0 bootstrap.yml)"
