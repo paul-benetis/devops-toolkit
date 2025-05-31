@@ -8,11 +8,10 @@ resource "aws_iam_policy" "iam_github_oidc_terraform_write_access" {
       {
         "Effect" : "Allow",
         "Action" : [
-          "s3:ListBucket",
-          "s3:GetObject",
+          "s3:List*",
+          "s3:Get*",
           "s3:PutObject",
           "s3:DeleteObject",
-          "s3:GetBucket*"
         ],
         "Resource" : [
           "arn:aws:s3:::paulb-devops-toolkit-terraform-state",
@@ -55,11 +54,10 @@ resource "aws_iam_policy" "iam_github_oidc_terraform_read_only_access" {
       {
         "Effect" : "Allow",
         "Action" : [
-          "s3:ListBucket",
-          "s3:GetObject",
+          "s3:List*",
+          "s3:Get*",
           "s3:PutObject",
           "s3:DeleteObject",
-          "s3:GetBucket*"
         ],
         "Resource" : [
           "arn:aws:s3:::paulb-devops-toolkit-terraform-state",
