@@ -84,26 +84,27 @@ jobs:
         working-directory: ./terraform
         run: |
           terraform show -json | jq -c '
-              .values.root_module.child_modules[]
-              | select(.address == "module.ecs_service")
-              | .resources[]
-              | select(.type == "aws_ecs_task_definition" and .name == "this")
-              | .values
-              | {
-                  family: .family,
-                  networkMode: .network_mode,
-                  executionRoleArn: .execution_role_arn,
-                  taskRoleArn: .task_role_arn,
-                  containerDefinitions: (.container_definitions | fromjson),
-                  requiresCompatibilities: .requires_compatibilities,
-                  cpu: .cpu,
-                  memory: .memory,
-                  runtimePlatform: {
+            .values.root_module.child_modules
+            | map(select(.address == "module.ecs_service"))
+            | map(.resources[] | select(.type == "aws_ecs_task_definition" and .name == "this") | .values)
+            | first
+            | {
+                family: .family,
+                networkMode: .network_mode,
+                executionRoleArn: .execution_role_arn,
+                taskRoleArn: .task_role_arn,
+                containerDefinitions: (.container_definitions | fromjson),
+                requiresCompatibilities: .requires_compatibilities,
+                cpu: .cpu,
+                memory: .memory,
+                runtimePlatform: (
+                  if .runtime_platform and (.runtime_platform | length > 0) then {
                     cpuArchitecture: .runtime_platform[0].cpu_architecture,
                     operatingSystemFamily: .runtime_platform[0].operating_system_family
-                  }
-                }
-            ' > ../${{ env.ECS_TASK_DEFINITION }}
+                  } else null end
+                )
+              }
+          ' > ../${{ env.ECS_TASK_DEFINITION }}
 
       - name: Print task definition (debug)
         run: cat ../${{ env.ECS_TASK_DEFINITION }}
