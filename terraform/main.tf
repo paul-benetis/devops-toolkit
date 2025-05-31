@@ -29,3 +29,13 @@ provider "aws" {
     }
   }
 }
+
+provider "github" {
+  owner = var.gh_account # Your GitHub username or organization
+}
+
+resource "github_actions_secret" "aws_region" {
+  repository      = var.gh_repo
+  secret_name     = "AWS_REGION"
+  plaintext_value = var.aws_region
+}
