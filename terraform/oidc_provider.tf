@@ -7,7 +7,8 @@ module "iam_github_oidc_role" {
 
   source = "terraform-aws-modules/iam/aws//modules/iam-github-oidc-role"
 
-  subjects = ["${var.gh_account}/${var.gh_repo}:ref:${var.gh_ref}"]
+  subjects = [
+  "${var.gh_account}/${var.gh_repo}:ref:${var.gh_ref}"]
 
   policies = {
     ECRPullPush          = aws_iam_policy.iam_github_oidc_ecr_access.arn,
@@ -20,7 +21,9 @@ module "iam_github_oidc_read_only_role" {
 
   source = "terraform-aws-modules/iam/aws//modules/iam-github-oidc-role"
 
-  subjects = ["${var.gh_account}/${var.gh_repo}:ref:refs/heads/*"]
+  subjects = [
+    "${var.gh_account}/${var.gh_repo}:ref:refs/heads/*",
+  "${var.gh_account}/${var.gh_repo}:pull_request"]
 
   policies = {
     ECRPullPush             = aws_iam_policy.iam_github_oidc_ecr_access.arn,
