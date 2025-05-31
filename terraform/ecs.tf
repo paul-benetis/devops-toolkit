@@ -49,6 +49,8 @@ module "ecs_service" {
   cpu    = 1024
   memory = 4096
 
+  assign_public_ip = true
+
   # Container definition(s)
   container_definitions = {
 
