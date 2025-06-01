@@ -39,3 +39,9 @@ resource "github_actions_secret" "aws_region" {
   secret_name     = "AWS_REGION"
   plaintext_value = var.aws_region
 }
+
+resource "github_actions_secret" "app_name" {
+  repository      = var.gh_repo
+  secret_name     = "APP_NAME"
+  plaintext_value = var.app_name
+}
