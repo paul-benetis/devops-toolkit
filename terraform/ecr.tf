@@ -88,6 +88,6 @@ data "aws_iam_policy_document" "ecr_repo_policy" {
 }
 
 resource "aws_ecr_repository_policy" "allow_pull_push" {
-  repository = aws_ecr_repository.my_repo.name
+  repository = module.ecr.repository_name
   policy     = data.aws_iam_policy_document.ecr_repo_policy.json
 }
