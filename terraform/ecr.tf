@@ -61,10 +61,13 @@ data "aws_iam_policy_document" "ecr_repo_policy" {
   statement {
     sid    = "AllowPullForAnyone"
     effect = "Allow"
+
     actions = [
       "ecr:GetDownloadUrlForLayer",
       "ecr:BatchGetImage",
+      "ecr:BatchCheckLayerAvailability",
     ]
+
     principals {
       type        = "AWS"
       identifiers = ["*"]
@@ -74,19 +77,20 @@ data "aws_iam_policy_document" "ecr_repo_policy" {
   statement {
     sid    = "AllowPushForSpecificRole"
     effect = "Allow"
+
     actions = [
       "ecr:PutImage",
       "ecr:InitiateLayerUpload",
       "ecr:UploadLayerPart",
       "ecr:CompleteLayerUpload",
     ]
+
     principals {
       type        = "AWS"
-      identifiers = ["arn:aws:iam::123456789012:role/some-role"]
+      identifiers = [module.iam_github_oidc_role.arn]
     }
   }
 }
-
 resource "aws_ecr_repository_policy" "allow_pull_push" {
   repository = module.ecr.repository_name
   policy     = data.aws_iam_policy_document.ecr_repo_policy.json
