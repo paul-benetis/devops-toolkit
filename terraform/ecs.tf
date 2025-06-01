@@ -81,10 +81,8 @@ module "ecs_service" {
     }
   ]
 
-  # Container definition(s)
-  container_definitions = {
-
-    myapp = {
+  container_definitions = merge({
+    (var.app_name) = {
       cpu       = 512
       memory    = 1024
       essential = true
@@ -97,12 +95,10 @@ module "ecs_service" {
         }
       ]
 
-      # Example image used requires access to write to root filesystem
-      readonly_root_filesystem = false
-
+      readonly_root_filesystem  = false
       enable_cloudwatch_logging = false
     }
-  }
+  })
 
   subnet_ids = data.aws_subnets.default.ids
 

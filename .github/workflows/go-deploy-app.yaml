@@ -9,8 +9,7 @@ on:
   workflow_dispatch:
 
 env:
-  ECS_TASK_DEFINITION: myapp-task-def.json
-  CONTAINER_NAME: myapp
+  APP_NAME: ${{ secrets.APP_NAME }}
 
 jobs:
   deploy:
@@ -26,6 +25,11 @@ jobs:
         goos: [linux]
 
     steps:
+      - name: Set derived environment variables
+        run: |
+          echo "Set env var for task definition file name to be used later im multiple steps"
+          echo "TASK_DEF_FILE=${APP_NAME}-task-def.json" >> $GITHUB_ENV
+
       - name: Checkout Code
         uses: actions/checkout@v4.2.2
 
@@ -54,7 +58,7 @@ jobs:
 
       - name: Build Go App
         run: |
-          GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build -v -o ${{ env.CONTAINER_NAME }} .
+          GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build -v -o ${{ env.APP_NAME }} .
 
       - name: Login to Amazon ECR
         id: login-ecr
@@ -67,7 +71,7 @@ jobs:
           REPOSITORY: ${{ github.repository}}
           IMAGE_TAG: ${{ github.sha }}
         run: |
-          docker build --platform linux/arm64 -t $REGISTRY/$REPOSITORY:$IMAGE_TAG .
+          docker build --platform linux/arm64 --build-arg APP_NAME=${{ env.APP_NAME }} -t $REGISTRY/$REPOSITORY:$IMAGE_TAG .
           docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
           echo "image=$REGISTRY/$REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
@@ -104,26 +108,26 @@ jobs:
                   } else null end
                 )
               }
-          ' > ../${{ env.ECS_TASK_DEFINITION }}
+          ' > ../${{ env.TASK_DEF_FILE }}
 
       - name: Print task definition (debug)
-        run: cat ../${{ env.ECS_TASK_DEFINITION }}
+        run: cat ../${{ env.TASK_DEF_FILE }}
 
       - name: Fill in the new image ID in the Amazon ECS task definition
         id: task-def
         uses: aws-actions/amazon-ecs-render-task-definition@v1.7.3
         with:
-          task-definition: ${{ env.ECS_TASK_DEFINITION }}
-          container-name: ${{ env.CONTAINER_NAME }}
+          task-definition: ${{ env.TASK_DEF_FILE }}
+          container-name: ${{ env.APP_NAME }}
           image: ${{ steps.build-image.outputs.image }}
 
       - name: Deploy Amazon ECS task definition
         uses: aws-actions/amazon-ecs-deploy-task-definition@v2.3.2
         with:
           task-definition: ${{ steps.task-def.outputs.task-definition }}
-          service: ${{ env.CONTAINER_NAME}}
-          cluster: ecs-${{ env.CONTAINER_NAME }}
+          service: ${{ env.APP_NAME }}
+          cluster: ecs-${{ env.APP_NAME }}
           wait-for-service-stability: true
 
       - name: Deployment complete
-        run: echo "✅ ECS service '${{ env.CONTAINER_NAME }}' successfully deployed with image ${{ steps.build-image.outputs.image }}"
+        run: echo "✅ ECS service '${{ env.APP_NAME }}' successfully deployed with image ${{ steps.build-image.outputs.image }}"
