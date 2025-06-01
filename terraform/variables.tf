@@ -19,3 +19,8 @@ variable "gh_ref" {
   description = "GitHub reference"
   type        = string
 }
+
+variable "app_name" {
+  description = "Application name"
+  type        = string
+}
