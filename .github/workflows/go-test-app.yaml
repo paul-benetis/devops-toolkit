@@ -2,8 +2,8 @@ name: Test Go App
 
 on:
   push:
-    branches:
-      - "**"
+    branches-ignore:
+      - main
     paths:
       - app/**
 
