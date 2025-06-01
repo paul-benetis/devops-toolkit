@@ -84,7 +84,7 @@ module "ecs_service" {
   # Container definition(s)
   container_definitions = {
 
-    app = {
+    myapp = {
       cpu       = 512
       memory    = 1024
       essential = true
